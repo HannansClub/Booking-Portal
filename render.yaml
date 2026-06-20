@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: hannans-club-booking
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn booking_app:app
+    envVars:
+      - key: HANNANS_ADMIN_PASSWORD
+        sync: false
+      - key: HANNANS_APP_SECRET
+        sync: false
+      - key: HANNANS_DATA_DIR
+        value: /var/data/hannans
+      - key: HANNANS_MEMBER_DB_PATH
+        value: /var/data/hannans/hannans_club.sqlite3
+      - key: HANNANS_ADMIN_TIMEOUT_SECONDS
+        value: "300"
+    disk:
+      name: hannans-data
+      mountPath: /var/data/hannans
+      sizeGB: 1

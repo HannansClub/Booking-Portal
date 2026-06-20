@@ -1,0 +1,129 @@
+{
+  "addedBookings": [
+    {
+      "id": "ADMIN-1781871474160",
+      "client": "Sonia Prada",
+      "eventName": "Golden City Motors",
+      "date": "2026-07-23",
+      "roomId": "main-bar",
+      "roomName": "Main Bar and Alfresco Area",
+      "guests": 50,
+      "start": "6:00 PM",
+      "finish": "TBA",
+      "package": "Bar Tab tbc",
+      "catering": "Raj's Copperbowl",
+      "setup": "",
+      "staff": "Unassigned",
+      "suppliers": "",
+      "notes": "0426251460\nsoniap@goldencitymotors.com.au",
+      "contactEmail": "",
+      "contactPhone": "",
+      "sourceCell": "Admin portal"
+    }
+  ],
+  "bookingEdits": {
+    "BK26-026": {
+      "setup": ""
+    }
+  },
+  "eventNotes": {},
+  "staffAssignments": {
+    "BK26-026": {
+      "venueManager": "Emeline Miller",
+      "barLead": "Unassigned",
+      "floorStaff": "Unassigned",
+      "security": "Unassigned"
+    },
+    "BK26-029": {
+      "approvedManager": "Emeline Miller",
+      "staffMembers": []
+    },
+    "BK26-027": {
+      "approvedManager": "Emeline Miller",
+      "staffMembers": [
+        "Kayla Fairbairn"
+      ]
+    },
+    "BK26-028": {
+      "approvedManager": "Emeline Miller",
+      "staffMembers": []
+    },
+    "BK26-030": {
+      "approvedManager": "Emeline Miller",
+      "staffMembers": []
+    },
+    "BK26-034": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": []
+    },
+    "BK26-035": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": [
+        "Emma Dimmack"
+      ]
+    },
+    "BK26-041": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": []
+    },
+    "BK26-036": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": [
+        "Emma Dimmack"
+      ]
+    },
+    "BK26-039": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": [
+        "Emma Dimmack"
+      ]
+    },
+    "BK26-042": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": []
+    },
+    "BK26-044": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": []
+    },
+    "BK26-046": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": []
+    },
+    "BK26-050": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": []
+    },
+    "BK26-056": {
+      "approvedManager": "Sarah Hughes",
+      "staffMembers": []
+    }
+  },
+  "runSheetTasks": {},
+  "staffMembers": [
+    "Unassigned",
+    "Alison Melia",
+    "Amalia Talet",
+    "Angel Cachumbo",
+    "Charlotte Juster",
+    "Emeline Miller",
+    "Emma Dimmack",
+    "Hope Nicklin",
+    "Kaita Adams",
+    "Katrina Hansen",
+    "Kayla Fairbairn",
+    "Martin Lahbari",
+    "Mathis Besel",
+    "Meg Cusick",
+    "Melissa Horcholle",
+    "Sarah Hughes",
+    "Sunshine Muchanyangi"
+  ],
+  "eventChecklists": {},
+  "deletedBookingIds": [
+    "BK26-043",
+    "BK26-057",
+    "BK26-058",
+    "BK26-059"
+  ]
+}

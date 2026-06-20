@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Hannans Club Venue Hire</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>The Hannans Club</h1>
+        <p class="eyebrow">Est. 1896</p>
+      </div>
+      <a class="contact-link" href="mailto:manager@hannansclub.com.au">Enquire</a>
+    </header>
+
+    <main class="app-shell">
+      <aside class="finder" aria-label="Venue finder">
+        <section class="panel intro-panel">
+          <div>
+            <h2>Welcome to The Hannans Club Booking Portal</h2>
+          </div>
+          <p>Fill in the info below to find out more.</p>
+        </section>
+
+        <section class="panel controls">
+          <label>
+            Event type
+            <select id="eventType">
+              <option value="cocktail">Cocktail</option>
+              <option value="seated">Seated</option>
+              <option value="theatre">Theatre</option>
+              <option value="meeting">Meeting</option>
+            </select>
+          </label>
+
+          <label>
+            Guests
+            <input id="guestCount" type="number" min="1" max="600" value="100" />
+          </label>
+
+          <label>Date<input id="eventDate" type="date" /></label>
+
+          <div class="time-window-fields">
+            <label>Start time<input id="eventStart" type="time" value="09:00" /></label>
+            <label>Finish time<input id="eventFinish" type="time" value="17:00" /></label>
+          </div>
+
+          <label>
+            Membership
+            <select id="membership">
+              <option value="single">Single or couple member</option>
+              <option value="social">Social member</option>
+            </select>
+          </label>
+
+          <section class="member-lookup" aria-live="polite">
+            <label>
+              Member lookup
+              <input id="memberLookup" placeholder="Member number, phone or email" />
+            </label>
+            <div class="member-lookup-actions">
+              <button type="button" id="verifyMemberButton">Verify member</button>
+              <button type="button" class="ghost-button" id="clearMemberButton">Clear</button>
+            </div>
+            <p id="memberLookupStatus">Verified members receive the member venue hire rate.</p>
+          </section>
+        </section>
+
+      </aside>
+
+      <section class="content">
+        <div class="content-actions">
+          <nav class="tabs" aria-label="Sections">
+            <button class="tab active" data-tab="rooms">Spaces</button>
+            <button class="tab" data-tab="availability">Availability</button>
+            <button class="tab" data-tab="faq">FAQ</button>
+            <button class="tab" data-tab="enquiry">Enquiry</button>
+          </nav>
+          <a class="member-join-link" href="https://app.joinit.com/o/the-hannans-club/?fbclid=IwY2xjawSfXr5leHRuA2FlbQIxMABicmlkETFScGRJTGRRNG1XaW1VWVpnc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHq9xe_601qO5Ebm5aWFNuo-UeyYfJDo_BJ6KTtjZlF7u-se9X5aND396Pj-V_aem_eUIq9BpeiIKESQGblUVS4A" target="_blank" rel="noopener">Join as a member</a>
+        </div>
+
+        <section id="rooms" class="tab-panel active">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Available spaces</p>
+              <h2>Recommended spaces</h2>
+            </div>
+            <p id="matchCount"></p>
+          </div>
+          <div class="room-grid" id="roomGrid"></div>
+          <section class="panel estimate room-estimate" aria-live="polite">
+            <p class="eyebrow">Estimate is inclusive of venue hire only</p>
+            <div class="estimate-total" id="estimateTotal">$0</div>
+          </section>
+        </section>
+
+        <section id="availability" class="tab-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Availability calendar</p>
+              <h2>Check dates and rooms</h2>
+            </div>
+            <div class="calendar-actions">
+              <button type="button" class="ghost-button" id="prevMonth">Previous</button>
+              <button type="button" class="ghost-button" id="nextMonth">Next</button>
+            </div>
+          </div>
+
+          <div class="availability-layout">
+            <section class="panel calendar-panel">
+              <div class="calendar-title" id="calendarTitle"></div>
+              <div class="calendar-weekdays" aria-hidden="true">
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+              </div>
+              <div class="calendar-grid" id="calendarGrid"></div>
+            </section>
+
+            <section class="panel date-panel">
+              <p class="eyebrow">Selected date</p>
+              <h3 id="dateTitle">Choose a date</h3>
+              <p id="dateSummary">Select a calendar date to see which rooms are free, partially booked, or unavailable.</p>
+              <div class="availability-key">
+                <span><i class="status-dot free"></i>Available</span>
+                <span><i class="status-dot partial"></i>Part booked</span>
+                <span><i class="status-dot booked"></i>Unavailable</span>
+              </div>
+              <div class="room-status-list" id="roomStatusList"></div>
+            </section>
+
+            <section class="day-view" id="dayView">
+              <div class="day-view-head">
+                <div>
+                  <p class="eyebrow">Daily availability</p>
+                  <h2 id="dayViewTitle">Available rooms and times</h2>
+                  <p id="dayViewSubtitle">Click a date above to view hourly room availability.</p>
+                </div>
+                <button type="button" id="useDateButton">Use this date</button>
+              </div>
+              <div class="slot-key">
+                <span><i class="slot-dot available"></i>Available</span>
+                <span><i class="slot-dot booked"></i>Booked</span>
+                <span><i class="slot-dot unavailable"></i>Unavailable</span>
+              </div>
+              <div class="room-slot-grid" id="roomSlotGrid"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="faq" class="tab-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Venue hire questions</p>
+              <h2>Frequently asked questions</h2>
+            </div>
+          </div>
+          <div class="faq-grid">
+            <section class="panel">
+              <h3>Do I need to be a member?</h3>
+              <p>A Hannans Club membership is required to host an event.</p>
+            </section>
+            <section class="panel">
+              <h3>How do I secure a booking?</h3>
+              <p>The venue fee and completed booking form are required at the time of booking.</p>
+            </section>
+            <section class="panel">
+              <h3>When is final payment due?</h3>
+              <p>Final payment and final numbers are due one week before the event.</p>
+            </section>
+            <section class="panel">
+              <h3>Can I bring my own alcohol?</h3>
+              <p>BYO beverages are not allowed because the club is fully licensed.</p>
+            </section>
+            <section class="panel">
+              <h3>Do large events need security?</h3>
+              <p>Events over 100 people require security arranged by the host.</p>
+            </section>
+            <section class="panel">
+              <h3>What time do evening events finish?</h3>
+              <p>Evening events conclude by midnight, with last drinks at 11.15pm.</p>
+            </section>
+            <section class="panel">
+              <h3>Can we use outside catering?</h3>
+              <p>
+                Chef Raj from Raj's Copper Bowl operates independently from the Hannans Club kitchen.
+                Hosts can contact Raj for a quote at rajscopperbowl@outlook.com or 0421 665 098.
+              </p>
+              <p>
+                Outside catering is welcome, with the host responsible for plates, cutlery,
+                napkins, cleanup, and use of the bins provided.
+              </p>
+            </section>
+          </div>
+          <div hidden>
+            <input type="checkbox" id="bevPackage" />
+            <input type="checkbox" id="arrivalCocktail" />
+            <input type="checkbox" id="arrivalBubbles" />
+            <input type="checkbox" id="basicSpirits" />
+            <input type="checkbox" id="barTab" />
+            <input type="checkbox" id="drinksPackage" />
+            <input type="checkbox" id="firePit" />
+            <input type="checkbox" id="gasHeaters" />
+          </div>
+        </section>
+
+        <section id="details" class="tab-panel">
+          <div class="details-grid">
+            <section class="panel">
+              <h3>Important booking notes</h3>
+              <ul class="clean-list">
+                <li>A Hannans Club membership is required to host an event.</li>
+                <li>The venue fee and completed booking form are required at booking.</li>
+                <li>Final payment and final numbers are due one week before the event.</li>
+                <li>Events over 100 people require security arranged by the host.</li>
+                <li>Evening events conclude by midnight, with last drinks at 11.15pm.</li>
+                <li>BYO beverages are not allowed because the club is fully licensed.</li>
+              </ul>
+            </section>
+            <section class="panel">
+              <h3>Local vendors</h3>
+              <ul class="vendor-list" id="vendorList"></ul>
+            </section>
+          </div>
+        </section>
+
+        <section id="enquiry" class="tab-panel">
+          <div class="enquiry-layout">
+            <form class="panel enquiry-form" id="enquiryForm">
+              <h2>Prepare an enquiry</h2>
+              <label>Your name<input id="clientName" placeholder="Name" /></label>
+              <label>Email<input id="clientEmail" type="email" placeholder="you@example.com" /></label>
+              <label>Event notes<textarea id="eventNotes" rows="4" placeholder="Tell us about the event, timings, styling, catering, and any supplier needs."></textarea></label>
+              <button type="button" class="ghost-button" id="emailEstimateButton">Send estimate to:</button>
+              <button type="button" id="emailButton">Open email enquiry</button>
+            </form>
+            <section class="panel enquiry-summary">
+              <p class="eyebrow">Selected space</p>
+              <h2 id="selectedName">No room selected</h2>
+              <p id="selectedSummary">Choose a space from the Spaces tab to include it in your enquiry.</p>
+              <div class="contact-card">
+                <strong>The Hannans Club Inc.</strong>
+                <span>manager@hannansclub.com.au</span>
+                <span>08 9021 3040</span>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="admin" class="tab-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Club admin</p>
+              <h2>Bookings and run sheets</h2>
+            </div>
+          </div>
+
+          <section class="panel admin-login" id="adminLogin">
+            <h3>Admin login</h3>
+            <p>Use the admin password set for this hosted app.</p>
+            <label>Password<input id="adminPassword" type="password" placeholder="Enter password" /></label>
+            <button type="button" id="adminLoginButton">Log in</button>
+            <p class="admin-error" id="adminError"></p>
+          </section>
+
+          <section class="admin-dashboard" id="adminDashboard" hidden>
+            <div class="admin-dashboard-actions">
+              <button type="button" id="openAddEventModal">Add event</button>
+              <div class="admin-action-group">
+                <button type="button" class="ghost-button" id="backToBookingButton">Back to booking interface</button>
+                <button type="button" class="ghost-button" id="adminLogoutButton">Log out</button>
+              </div>
+            </div>
+            <div class="admin-grid">
+              <section class="panel">
+                <div class="admin-list-head">
+                  <div>
+                    <h3 id="adminBookingListTitle">Upcoming bookings</h3>
+                    <div class="admin-view-tabs" aria-label="Booking view">
+                      <button type="button" class="active" id="upcomingEventsButton">Upcoming</button>
+                      <button type="button" id="pastEventsButton">Past events</button>
+                      <button type="button" id="cancelledEventsButton">Cancelled</button>
+                    </div>
+                  </div>
+                  <label class="month-filter">Month<select id="adminMonthFilter"></select></label>
+                </div>
+                <div class="admin-report-actions">
+                  <button type="button" class="ghost-button" id="upcomingReportButton">Upcoming report</button>
+                  <button type="button" class="ghost-button" id="unstaffedReportButton">Unstaffed events</button>
+                </div>
+                <div class="admin-report-output" id="adminReportOutput" hidden></div>
+                <div class="booking-list" id="bookingList"></div>
+              </section>
+
+              <section class="panel run-sheet" id="runSheet">
+                <div class="run-sheet-actions">
+                  <h3>Event run sheet</h3>
+                  <div class="run-sheet-button-row">
+                    <button type="button" class="ghost-button" id="editBookingButton">Edit booking</button>
+                    <button type="button" class="ghost-button" id="cancelBookingButton">Cancel event</button>
+                    <button type="button" class="ghost-button danger-button" id="deleteBookingButton">Delete event</button>
+                    <button type="button" id="printRunSheet">Print run sheet</button>
+                  </div>
+                </div>
+                <div class="staff-assigner">
+                  <h3>Assign staff</h3>
+                  <div class="staff-grid">
+                    <label>Approved Manager<select id="approvedManagerSelect"></select></label>
+                  </div>
+                  <div class="additional-staff-list" id="additionalStaffList"></div>
+                  <button type="button" class="ghost-button" id="saveStaffAssignments">Save staff assignments</button>
+                  <button type="button" class="ghost-button" id="addStaffMemberButton">Add staff member</button>
+                  <div class="staff-library">
+                    <label>New staff member<input id="newStaffMemberName" placeholder="First and last name" /></label>
+                    <button type="button" class="ghost-button" id="saveNewStaffMember">Add to dropdown</button>
+                  </div>
+                </div>
+                <div class="admin-notes-editor">
+                  <label>Event notes<textarea id="adminEventNotes" rows="5" placeholder="Add internal notes for this event"></textarea></label>
+                  <button type="button" class="ghost-button" id="saveEventNotes">Save notes</button>
+                  <p id="eventNotesSaved" aria-live="polite"></p>
+                </div>
+                <div id="runSheetContent"></div>
+              </section>
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <button type="button" class="admin-corner-link" data-tab="admin">Admin</button>
+
+    <div class="lightbox" id="lightbox" aria-hidden="true">
+      <div class="lightbox-backdrop" data-close-lightbox></div>
+      <section class="lightbox-panel" aria-label="Room photo gallery">
+        <button type="button" class="lightbox-close" data-close-lightbox>Close</button>
+        <button type="button" class="lightbox-nav lightbox-prev" id="lightboxPrev">Previous</button>
+        <img id="lightboxImage" alt="Room gallery image" />
+        <button type="button" class="lightbox-nav lightbox-next" id="lightboxNext">Next</button>
+        <p id="lightboxCaption"></p>
+      </section>
+    </div>
+
+    <div class="admin-event-modal" id="adminEventModal" aria-hidden="true">
+      <div class="admin-event-backdrop" data-close-admin-event></div>
+      <section class="admin-event-panel" aria-label="Add or edit event">
+        <div class="extras-head">
+          <div>
+            <p class="eyebrow">Admin booking</p>
+            <h2 id="adminEventModalTitle">Add event</h2>
+          </div>
+          <button type="button" class="ghost-button" data-close-admin-event>Close</button>
+        </div>
+        <div class="add-event-grid">
+          <label>Event name<input id="newEventName" placeholder="e.g. Smith Wedding" /></label>
+          <label>Client/contact<input id="newEventClient" placeholder="Client name or contact" /></label>
+          <label>Date<input id="newEventDate" type="date" /></label>
+          <label>Room
+            <select id="newEventRoom">
+              <option value="main-bar">Main Bar and Alfresco Area</option>
+              <option value="long-room">The Long Room</option>
+              <option value="billards-room">The Billards Room</option>
+              <option value="old-bowling-lawn">The Old Bowling Lawn</option>
+              <option value="library">Library</option>
+              <option value="external">External</option>
+            </select>
+          </label>
+          <label>Guests<input id="newEventGuests" type="number" min="0" placeholder="0" /></label>
+          <label>Start time<select id="newEventStart"></select></label>
+          <label>Finish time<select id="newEventFinish"></select></label>
+          <label>Package<input id="newEventPackage" placeholder="Package or bar tab details" /></label>
+          <label>Catering
+            <select id="newEventCatering">
+              <option value="">Not set</option>
+              <option value="Raj's Copperbowl">Raj's Copperbowl</option>
+              <option value="External">External</option>
+            </select>
+          </label>
+          <label>Room setup<input id="newEventSetup" placeholder="Room setup" /></label>
+          <label>Vendors / suppliers<input id="newEventSuppliers" placeholder="Vendors, suppliers, entertainers, security" /></label>
+          <label>Staffing<input id="newEventStaff" placeholder="Staffing notes" /></label>
+          <label>Notes<textarea id="newEventNotes" rows="3" placeholder="Catering, setup, deposits, contact details"></textarea></label>
+        </div>
+        <button type="button" id="saveAdminEventButton">Save event</button>
+        <p class="admin-error" id="addAdminEventStatus"></p>
+      </section>
+    </div>
+
+    <div class="extras-modal" id="extrasModal" aria-hidden="true">
+      <div class="extras-backdrop" data-close-extras></div>
+      <section class="extras-panel" aria-label="Select event extras">
+        <div class="extras-head">
+          <div>
+            <p class="eyebrow">Optional extras</p>
+            <h2 id="extrasRoomTitle">Add extras</h2>
+          </div>
+          <button type="button" class="ghost-button" data-close-extras>Close</button>
+        </div>
+
+        <div class="extras-summary">
+          <span id="extrasVenuePrice">$0 venue hire</span>
+          <span id="extrasGuestCount">100 guests</span>
+        </div>
+
+        <div class="extras-options">
+          <label class="extra-option extra-option-stacked">
+            <input type="checkbox" id="extraBarTab" />
+            <span>
+              <strong>Bar tab</strong>
+              Set an amount and note what is included, such as ice buckets with stubbies.
+            </span>
+            <div class="extra-fields">
+              <label>Amount<input type="number" id="barTabAmount" min="0" step="50" placeholder="e.g. 500" /></label>
+              <label>What is included<textarea id="barTabIncluded" rows="2" placeholder="e.g. Ice buckets with stubbies, house wine, soft drink"></textarea></label>
+            </div>
+          </label>
+          <label class="extra-option extra-option-stacked">
+            <input type="checkbox" id="extraDrinksPackage" />
+            <span>
+              <strong>Drinks package</strong>
+              Note what is included and the preferred time frame.
+            </span>
+            <div class="extra-fields two-column">
+              <label>What is included<textarea id="drinksPackageIncluded" rows="2" placeholder="e.g. Beer, wine, bubbles and soft drink"></textarea></label>
+              <label>Time frame<input type="text" id="drinksPackageTimeframe" placeholder="e.g. 2 hours, 6pm-8pm" /></label>
+            </div>
+          </label>
+          <label class="extra-option">
+            <input type="checkbox" id="extraBevPackage" />
+            <span>
+              <strong>Beverage package</strong>
+              2-hour package at $80 per person
+            </span>
+          </label>
+          <label class="extra-option">
+            <input type="checkbox" id="extraArrivalCocktail" />
+            <span>
+              <strong>Arrival cocktail</strong>
+              $18 per person
+            </span>
+          </label>
+          <label class="extra-option">
+            <input type="checkbox" id="extraArrivalBubbles" />
+            <span>
+              <strong>Arrival bubbles</strong>
+              $10 per person
+            </span>
+          </label>
+          <label class="extra-option">
+            <input type="checkbox" id="extraBasicSpirits" />
+            <span>
+              <strong>Basic spirits package</strong>
+              $30 per person per hour
+            </span>
+          </label>
+          <label class="extra-option extra-option-stacked">
+            <input type="checkbox" id="extraFirePit" />
+            <span>
+              <strong>Fire pit</strong>
+              $100 per booking including wood. 3 available.
+            </span>
+            <div class="extra-fields compact">
+              <label>Quantity<input type="number" id="firePitQty" min="0" max="3" value="1" /></label>
+            </div>
+          </label>
+          <label class="extra-option extra-option-stacked">
+            <input type="checkbox" id="extraGasHeaters" />
+            <span>
+              <strong>Gas heaters</strong>
+              $20 each per booking. 5 available.
+            </span>
+            <div class="extra-fields compact">
+              <label>Quantity<input type="number" id="gasHeaterQty" min="0" max="5" value="1" /></label>
+            </div>
+          </label>
+          <label class="extra-option extra-option-stacked">
+            <input type="checkbox" id="extraOther" />
+            <span>
+              <strong>Other</strong>
+              Tell us anything else you would like included in the booking.
+            </span>
+            <div class="extra-fields">
+              <label>Details<textarea id="otherExtraDetails" rows="3" placeholder="e.g. Special setup request, supplier access, decorations"></textarea></label>
+            </div>
+          </label>
+        </div>
+
+        <div class="extras-total">
+          <span>Total estimate</span>
+          <strong id="extrasTotal">$0</strong>
+        </div>
+        <button type="button" id="continueToEnquiry">Continue to enquiry</button>
+      </section>
+    </div>
+
+    <div class="availability-modal" id="availabilityModal" aria-hidden="true">
+      <div class="availability-backdrop" data-close-availability></div>
+      <section class="availability-panel" aria-label="Daily room availability">
+        <div class="day-view modal-day-view" id="modalDayView">
+          <div class="day-view-head">
+            <div>
+              <p class="eyebrow">Daily availability</p>
+              <h2 id="modalDayViewTitle">Available rooms and times</h2>
+              <p id="modalDayViewSubtitle">Choose an available time to include it in your enquiry.</p>
+            </div>
+            <button type="button" class="ghost-button" data-close-availability>Close</button>
+          </div>
+          <div class="slot-key">
+            <span><i class="slot-dot available"></i>Available</span>
+            <span><i class="slot-dot booked"></i>Booked</span>
+            <span><i class="slot-dot unavailable"></i>Unavailable</span>
+            <span><i class="slot-dot selected"></i>Selected</span>
+          </div>
+          <p class="time-selection-summary" id="modalTimeSelectionSummary">Select a start time, then select a finish time in the same room.</p>
+          <div class="room-slot-grid" id="modalRoomSlotGrid"></div>
+          <button type="button" id="modalUseDateButton">Use selected time</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="bookings-data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
