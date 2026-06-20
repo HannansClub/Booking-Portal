@@ -177,6 +177,18 @@ button:hover {
   background: rgba(82, 0, 16, 0.045);
 }
 
+.about-club-panel h2 {
+  color: var(--brand);
+  font-size: 30px;
+  line-height: 1;
+}
+
+.about-club-panel p:last-child {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .member-lookup-actions {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -685,6 +697,37 @@ body.admin-view .content-actions {
   color: var(--brand);
 }
 
+.terms-check {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: start;
+  gap: 8px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.inline-link {
+  min-height: auto;
+  border: 0;
+  padding: 0;
+  color: var(--brand);
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.submit-status {
+  min-height: 18px;
+  margin: 0;
+  color: #166534;
+  font-weight: 800;
+}
+
+.submit-status.error {
+  color: #b91c1c;
+}
+
 .extras-total {
   margin-bottom: 14px;
 }
@@ -692,6 +735,73 @@ body.admin-view .content-actions {
 .extras-total strong {
   color: var(--brand);
   font-size: 26px;
+}
+
+.confirm-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  place-items: center;
+  padding: 24px;
+}
+
+.confirm-modal.open {
+  display: grid;
+}
+
+.confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 0, 5, 0.62);
+}
+
+.confirm-panel {
+  position: relative;
+  z-index: 1;
+  width: min(720px, 100%);
+  max-height: 86vh;
+  overflow: auto;
+  border-radius: 10px;
+  padding: 18px;
+  background: #fffaf7;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+}
+
+.confirm-summary {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.confirm-summary dl {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.35fr) 1fr;
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.confirm-summary dt {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.confirm-summary dd {
+  margin: 0;
+}
+
+.terms-panel {
+  width: min(860px, 100%);
+}
+
+.terms-content {
+  color: var(--ink);
+}
+
+.terms-content ol {
+  display: grid;
+  gap: 8px;
+  padding-left: 24px;
 }
 
 .room-body {
@@ -1428,6 +1538,16 @@ body.admin-view .content-actions {
 .event-checklist {
   display: grid;
   gap: 8px;
+}
+
+.attachment-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.attachment-list a {
+  color: var(--brand);
+  font-weight: 800;
 }
 
 .event-checklist label {

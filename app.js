@@ -182,6 +182,8 @@ const defaultStaffMembers = [
 let staffMembers = JSON.parse(localStorage.getItem("hannansStaffMembers") || "null") || [...defaultStaffMembers];
 let staffAssignments = JSON.parse(localStorage.getItem("hannansStaffAssignments") || "{}");
 let eventChecklists = JSON.parse(localStorage.getItem("hannansEventChecklists") || "{}");
+let bookingAttachments = JSON.parse(localStorage.getItem("hannansBookingAttachments") || "{}");
+let emailLog = JSON.parse(localStorage.getItem("hannansEmailLog") || "[]");
 
 const defaultChecklistItems = [
   "Booking details reviewed",
@@ -726,6 +728,7 @@ function renderAdminBookings(selectedId) {
         <strong>${booking.status === "cancelled" ? "Cancelled: " : ""}${escapeHtml(booking.eventName)}</strong>
         <span>${formatDate(booking.date)} - ${escapeHtml(roomName)}</span>
         <span>${booking.guests || "TBA"} guests | ${escapeHtml(booking.start)} to ${escapeHtml(booking.finish)}</span>
+        <span>Status: ${escapeHtml(booking.status || "confirmed")}</span>
       </button>
     `;
   }).join("") : `<p class="empty-bookings">No bookings this month.</p>`}
@@ -972,6 +975,7 @@ function fillAdminEventForm(booking = null) {
   el("newEventStart").value = booking?.start || "TBA";
   el("newEventFinish").value = booking?.finish || "TBA";
   el("newEventPackage").value = booking?.package || "";
+  el("newEventStatus").value = booking?.status || "confirmed";
   if (booking?.catering && ![...el("newEventCatering").options].some((option) => option.value === booking.catering)) {
     el("newEventCatering").add(new Option(booking.catering, booking.catering));
   }
@@ -979,6 +983,9 @@ function fillAdminEventForm(booking = null) {
   el("newEventSetup").value = booking?.setup || "";
   el("newEventSuppliers").value = booking?.suppliers || "";
   el("newEventStaff").value = booking?.staff || "";
+  el("newEventDepositStatus").value = booking?.depositStatus || "";
+  el("newEventBalanceStatus").value = booking?.balanceStatus || "";
+  el("newEventPaymentDue").value = booking?.paymentDue || "";
   el("newEventNotes").value = booking?.notes || "";
   el("addAdminEventStatus").textContent = "";
 }
@@ -1014,9 +1021,13 @@ function bookingFromAdminForm(id) {
     start: el("newEventStart").value,
     finish: el("newEventFinish").value,
     package: el("newEventPackage").value.trim(),
+    status: el("newEventStatus").value,
     catering: el("newEventCatering").value.trim(),
     setup: el("newEventSetup").value.trim(),
     staff: el("newEventStaff").value.trim() || "Unassigned",
+    depositStatus: el("newEventDepositStatus").value.trim(),
+    balanceStatus: el("newEventBalanceStatus").value.trim(),
+    paymentDue: el("newEventPaymentDue").value,
     suppliers: el("newEventSuppliers").value.trim(),
     notes: el("newEventNotes").value.trim() || "Added in booking app admin portal",
     contactEmail: "",
@@ -1139,6 +1150,7 @@ function renderRunSheet(bookingId) {
   const roomName = room?.name || booking.roomName || "Other area";
   const assignment = staffAssignments[booking.id] || {};
   const internalNote = adminEventNotes[booking.id] || "";
+  const attachments = bookingAttachments[booking.id] || [];
   const taskRows = tasksForBooking(booking);
   const checklist = checklistForBooking(booking.id);
   const approvedManager = assignment.approvedManager || assignment.venueManager || "Unassigned";
@@ -1171,6 +1183,16 @@ function renderRunSheet(bookingId) {
         <p>${escapeHtml(booking.package || "Not set")}</p>
       </section>
       <section>
+        <h3>Status</h3>
+        <p>${escapeHtml(booking.status || "Confirmed")}</p>
+      </section>
+      <section>
+        <h3>Payment</h3>
+        <p>Deposit: ${escapeHtml(booking.depositStatus || "Not set")}</p>
+        <p>Balance: ${escapeHtml(booking.balanceStatus || "Not set")}</p>
+        <p>Due: ${escapeHtml(booking.paymentDue || "Not set")}</p>
+      </section>
+      <section>
         <h3>Catering</h3>
         <p>${escapeHtml(booking.catering || "Not set")}</p>
       </section>
@@ -1192,6 +1214,14 @@ function renderRunSheet(bookingId) {
     <section class="run-block">
       <h3>Vendors / suppliers</h3>
       <p>${escapeHtml(booking.suppliers || "Not set")}</p>
+    </section>
+    <section class="run-block">
+      <h3>Uploaded files</h3>
+      ${attachments.length ? `
+        <ul class="attachment-list">
+          ${attachments.map((file) => `<li><a href="${escapeHtml(file.dataUrl || "#")}" download="${escapeHtml(file.name || "attachment")}">${escapeHtml(file.name || "Attachment")}</a></li>`).join("")}
+        </ul>
+      ` : `<p>No uploaded files.</p>`}
     </section>
     <section class="run-block">
       <h3>Event checklist</h3>
@@ -1291,6 +1321,8 @@ function applyAdminState(stateData) {
   staffMembers = Array.isArray(stateData.staffMembers) && stateData.staffMembers.length ? stateData.staffMembers : staffMembers;
   eventChecklists = stateData.eventChecklists || eventChecklists;
   deletedBookingIds = Array.isArray(stateData.deletedBookingIds) ? stateData.deletedBookingIds : deletedBookingIds;
+  bookingAttachments = stateData.attachments || bookingAttachments;
+  emailLog = Array.isArray(stateData.emailLog) ? stateData.emailLog : emailLog;
   localStorage.setItem("hannansAdminBookings", JSON.stringify(savedAdminBookings));
   localStorage.setItem("hannansBookingEdits", JSON.stringify(savedBookingEdits));
   localStorage.setItem("hannansAdminEventNotes", JSON.stringify(adminEventNotes));
@@ -1299,6 +1331,8 @@ function applyAdminState(stateData) {
   localStorage.setItem("hannansStaffMembers", JSON.stringify(staffMembers));
   localStorage.setItem("hannansEventChecklists", JSON.stringify(eventChecklists));
   localStorage.setItem("hannansDeletedBookingIds", JSON.stringify(deletedBookingIds));
+  localStorage.setItem("hannansBookingAttachments", JSON.stringify(bookingAttachments));
+  localStorage.setItem("hannansEmailLog", JSON.stringify(emailLog));
   rebuildAdminBookings();
   rebuildAvailabilityAndSlots();
 }
@@ -1312,7 +1346,9 @@ async function saveAdminState() {
     runSheetTasks,
     staffMembers,
     eventChecklists,
-    deletedBookingIds
+    deletedBookingIds,
+    attachments: bookingAttachments,
+    emailLog
   };
   localStorage.setItem("hannansAdminBookings", JSON.stringify(savedAdminBookings));
   localStorage.setItem("hannansBookingEdits", JSON.stringify(savedBookingEdits));
@@ -1322,6 +1358,8 @@ async function saveAdminState() {
   localStorage.setItem("hannansStaffMembers", JSON.stringify(staffMembers));
   localStorage.setItem("hannansEventChecklists", JSON.stringify(eventChecklists));
   localStorage.setItem("hannansDeletedBookingIds", JSON.stringify(deletedBookingIds));
+  localStorage.setItem("hannansBookingAttachments", JSON.stringify(bookingAttachments));
+  localStorage.setItem("hannansEmailLog", JSON.stringify(emailLog));
   try {
     const response = await fetch("/api/admin/state", {
       method: "POST",
@@ -1777,6 +1815,183 @@ function openEmail() {
   window.location.href = `mailto:manager@hannansclub.com.au?subject=${encodeURIComponent("Venue hire enquiry")}&body=${encodeURIComponent(body)}`;
 }
 
+function setEnquiryStatus(message, tone = "") {
+  el("enquirySubmitStatus").textContent = message;
+  el("enquirySubmitStatus").className = tone ? `submit-status ${tone}` : "submit-status";
+}
+
+function currentEnquirySummary() {
+  const inputs = getInputs();
+  const room = rooms.find((item) => item.id === state.selectedRoomId);
+  const venue = room ? roomPrice(room, inputs) : 0;
+  const extras = selectedExtrasSummary();
+  return { inputs, room, venue, extras };
+}
+
+function validateEnquiry() {
+  if (!el("clientName").value.trim()) return "Please enter your name.";
+  if (!el("clientEmail").value.trim()) return "Please enter your email address.";
+  if (!state.selectedRoomId) return "Please select a space.";
+  if (!el("acceptTerms").checked) return "Please accept the venue hire terms and conditions.";
+  return "";
+}
+
+function openEnquiryConfirmModal() {
+  const error = validateEnquiry();
+  if (error) {
+    setEnquiryStatus(error, "error");
+    return;
+  }
+  const { inputs, room, venue, extras } = currentEnquirySummary();
+  el("enquiryConfirmSummary").innerHTML = `
+    <dl>
+      <dt>Name</dt><dd>${escapeHtml(el("clientName").value.trim())}</dd>
+      <dt>Email</dt><dd>${escapeHtml(el("clientEmail").value.trim())}</dd>
+      <dt>Phone</dt><dd>${escapeHtml(el("clientPhone").value.trim() || "Not provided")}</dd>
+      <dt>Event holder</dt><dd>${escapeHtml(el("clientOrganisation").value.trim() || "Not provided")}</dd>
+      <dt>Date and time</dt><dd>${escapeHtml(timeWindowText(inputs))}</dd>
+      <dt>Space</dt><dd>${escapeHtml(room?.name || "Not selected")}</dd>
+      <dt>Guests</dt><dd>${inputs.guests}</dd>
+      <dt>Event type</dt><dd>${escapeHtml(labelFor(inputs.eventType))}</dd>
+      <dt>Venue hire estimate</dt><dd>${escapeHtml(money.format(venue))}</dd>
+      <dt>Extras</dt><dd>${extras.length ? escapeHtml(extras.join("; ")) : "None selected"}</dd>
+      <dt>Files</dt><dd>${el("enquiryFiles").files.length ? `${el("enquiryFiles").files.length} file(s) selected` : "None"}</dd>
+      <dt>Notes</dt><dd>${escapeHtml(el("eventNotes").value.trim() || "None")}</dd>
+    </dl>
+  `;
+  el("enquiryConfirmModal").classList.add("open");
+  el("enquiryConfirmModal").setAttribute("aria-hidden", "false");
+}
+
+function closeEnquiryConfirmModal() {
+  el("enquiryConfirmModal").classList.remove("open");
+  el("enquiryConfirmModal").setAttribute("aria-hidden", "true");
+}
+
+function openTermsModal() {
+  el("termsModal").classList.add("open");
+  el("termsModal").setAttribute("aria-hidden", "false");
+}
+
+function closeTermsModal() {
+  el("termsModal").classList.remove("open");
+  el("termsModal").setAttribute("aria-hidden", "true");
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      dataUrl: reader.result
+    });
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function enquiryAttachmentsPayload() {
+  const files = [...el("enquiryFiles").files].slice(0, 5);
+  return Promise.all(files.map(readFileAsDataUrl));
+}
+
+function enquiryEmailBodies(booking, extras, venue) {
+  const managerEmailBody = [
+    "New Hannans Club venue enquiry",
+    "",
+    `Name: ${booking.client}`,
+    `Email: ${booking.contactEmail}`,
+    `Phone: ${booking.contactPhone || "Not provided"}`,
+    `Organisation / event holder: ${booking.organisation || "Not provided"}`,
+    `Event: ${booking.eventName}`,
+    `Date: ${formatDate(booking.date)}`,
+    `Time: ${booking.start} to ${booking.finish}`,
+    `Space: ${booking.roomName}`,
+    `Guests: ${booking.guests}`,
+    `Event type: ${booking.eventType}`,
+    `Venue hire estimate: ${money.format(venue)}`,
+    "",
+    "Extras:",
+    extras.length ? extras.map((item) => `- ${item}`).join("\n") : "None selected",
+    "",
+    "Notes:",
+    booking.notes || "None"
+  ].join("\n");
+  const clientEmailBody = [
+    `Hi ${booking.client},`,
+    "",
+    "Thank you for your enquiry with The Hannans Club. We have received your venue hire request and will be in touch to confirm availability and details.",
+    "",
+    `Requested space: ${booking.roomName}`,
+    `Requested date: ${formatDate(booking.date)}`,
+    `Requested time: ${booking.start} to ${booking.finish}`,
+    `Guests: ${booking.guests}`,
+    `Venue hire estimate: ${money.format(venue)}`,
+    "",
+    "This is an enquiry only and your booking is not confirmed until accepted by The Hannans Club.",
+    "",
+    "Kind regards,",
+    "The Hannans Club"
+  ].join("\n");
+  return { managerEmailBody, clientEmailBody };
+}
+
+async function submitEnquiry() {
+  const error = validateEnquiry();
+  if (error) {
+    setEnquiryStatus(error, "error");
+    return;
+  }
+  const { inputs, room, venue, extras } = currentEnquirySummary();
+  const start = displayTime(inputs.startTime);
+  const finish = displayTime(inputs.finishTime);
+  const booking = {
+    client: el("clientName").value.trim(),
+    organisation: el("clientOrganisation").value.trim(),
+    eventName: el("clientOrganisation").value.trim() || `${el("clientName").value.trim()} enquiry`,
+    date: inputs.date,
+    roomId: room.id,
+    roomName: room.name,
+    guests: inputs.guests,
+    start,
+    finish,
+    package: extras.join("; "),
+    catering: "",
+    setup: "",
+    staff: "Unassigned",
+    suppliers: "",
+    notes: el("eventNotes").value.trim(),
+    contactEmail: el("clientEmail").value.trim(),
+    contactPhone: el("clientPhone").value.trim(),
+    eventType: labelFor(inputs.eventType),
+    estimate: venue,
+    extras,
+    membership: state.verifiedMember ? `Verified - ${memberDisplay(state.verifiedMember)}` : labelFor(inputs.membership),
+    termsAccepted: true
+  };
+  const emailBodies = enquiryEmailBodies(booking, extras, venue);
+  setEnquiryStatus("Submitting enquiry...");
+  try {
+    const attachments = await enquiryAttachmentsPayload();
+    const response = await fetch("/api/enquiries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ booking, attachments, ...emailBodies })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not submit enquiry.");
+    closeEnquiryConfirmModal();
+    setEnquiryStatus("Enquiry submitted. We have saved it in the admin portal and sent confirmation if email is configured.");
+    el("enquiryForm").reset();
+    el("guestCount").value = inputs.guests;
+    renderEstimate();
+  } catch (err) {
+    setEnquiryStatus(err.message, "error");
+  }
+}
+
 function emailEstimateToClient() {
   const inputs = getInputs();
   const room = rooms.find((item) => item.id === state.selectedRoomId);
@@ -1874,7 +2089,11 @@ el("extraOther").addEventListener("change", () => {
     renderExtrasTotal();
   });
 });
-el("emailButton").addEventListener("click", openEmail);
+el("reviewEnquiryButton").addEventListener("click", openEnquiryConfirmModal);
+el("submitEnquiryButton").addEventListener("click", submitEnquiry);
+el("openTermsButton").addEventListener("click", openTermsModal);
+document.querySelectorAll("[data-close-confirm]").forEach((item) => item.addEventListener("click", closeEnquiryConfirmModal));
+document.querySelectorAll("[data-close-terms]").forEach((item) => item.addEventListener("click", closeTermsModal));
 el("emailEstimateButton").addEventListener("click", emailEstimateToClient);
 el("adminLoginButton").addEventListener("click", loginAdmin);
 el("adminPassword").addEventListener("keydown", (event) => {

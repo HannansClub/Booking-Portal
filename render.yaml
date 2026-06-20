@@ -16,6 +16,18 @@ services:
         value: /var/data/hannans/hannans_club.sqlite3
       - key: HANNANS_ADMIN_TIMEOUT_SECONDS
         value: "300"
+      - key: HANNANS_MANAGER_EMAIL
+        value: manager@hannansclub.com.au
+      - key: HANNANS_SMTP_HOST
+        sync: false
+      - key: HANNANS_SMTP_PORT
+        value: "587"
+      - key: HANNANS_SMTP_USERNAME
+        sync: false
+      - key: HANNANS_SMTP_PASSWORD
+        sync: false
+      - key: HANNANS_SMTP_FROM
+        value: manager@hannansclub.com.au
     disk:
       name: hannans-data
       mountPath: /var/data/hannans

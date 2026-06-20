@@ -71,6 +71,17 @@
           </section>
         </section>
 
+        <section class="panel about-club-panel">
+          <p class="eyebrow">About the club</p>
+          <h2>A Goldfields meeting place since 1896</h2>
+          <p>
+            The Hannans Club is part of Kalgoorlie's historic heart, named for the goldfields story
+            that began with Paddy Hannan's 1893 find. Today, the club offers heritage rooms, relaxed
+            bar spaces, and open-air event areas for members and their guests to gather, celebrate,
+            and host memorable functions.
+          </p>
+        </section>
+
       </aside>
 
       <section class="content">
@@ -233,9 +244,17 @@
               <h2>Prepare an enquiry</h2>
               <label>Your name<input id="clientName" placeholder="Name" /></label>
               <label>Email<input id="clientEmail" type="email" placeholder="you@example.com" /></label>
+              <label>Phone<input id="clientPhone" type="tel" placeholder="0400 000 000" /></label>
+              <label>Organisation / event holder<input id="clientOrganisation" placeholder="Optional" /></label>
               <label>Event notes<textarea id="eventNotes" rows="4" placeholder="Tell us about the event, timings, styling, catering, and any supplier needs."></textarea></label>
+              <label>Upload files<input id="enquiryFiles" type="file" multiple /></label>
+              <label class="terms-check">
+                <input id="acceptTerms" type="checkbox" />
+                <span>I have read and accept the <button type="button" class="inline-link" id="openTermsButton">venue hire terms and conditions</button>.</span>
+              </label>
               <button type="button" class="ghost-button" id="emailEstimateButton">Send estimate to:</button>
-              <button type="button" id="emailButton">Open email enquiry</button>
+              <button type="button" id="reviewEnquiryButton">Review and submit enquiry</button>
+              <p class="submit-status" id="enquirySubmitStatus" aria-live="polite"></p>
             </form>
             <section class="panel enquiry-summary">
               <p class="eyebrow">Selected space</p>
@@ -372,6 +391,16 @@
           <label>Start time<select id="newEventStart"></select></label>
           <label>Finish time<select id="newEventFinish"></select></label>
           <label>Package<input id="newEventPackage" placeholder="Package or bar tab details" /></label>
+          <label>Status
+            <select id="newEventStatus">
+              <option value="new enquiry">New enquiry</option>
+              <option value="followed up">Followed up</option>
+              <option value="tentative">Tentative</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </label>
           <label>Catering
             <select id="newEventCatering">
               <option value="">Not set</option>
@@ -382,6 +411,9 @@
           <label>Room setup<input id="newEventSetup" placeholder="Room setup" /></label>
           <label>Vendors / suppliers<input id="newEventSuppliers" placeholder="Vendors, suppliers, entertainers, security" /></label>
           <label>Staffing<input id="newEventStaff" placeholder="Staffing notes" /></label>
+          <label>Deposit status<input id="newEventDepositStatus" placeholder="e.g. Requested, paid, waived" /></label>
+          <label>Balance status<input id="newEventBalanceStatus" placeholder="e.g. Due, paid in full" /></label>
+          <label>Payment due date<input id="newEventPaymentDue" type="date" /></label>
           <label>Notes<textarea id="newEventNotes" rows="3" placeholder="Catering, setup, deposits, contact details"></textarea></label>
         </div>
         <button type="button" id="saveAdminEventButton">Save event</button>
@@ -517,6 +549,54 @@
           <p class="time-selection-summary" id="modalTimeSelectionSummary">Select a start time, then select a finish time in the same room.</p>
           <div class="room-slot-grid" id="modalRoomSlotGrid"></div>
           <button type="button" id="modalUseDateButton">Use selected time</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="confirm-modal" id="enquiryConfirmModal" aria-hidden="true">
+      <div class="confirm-backdrop" data-close-confirm></div>
+      <section class="confirm-panel" aria-label="Confirm enquiry">
+        <div class="extras-head">
+          <div>
+            <p class="eyebrow">Confirm enquiry</p>
+            <h2>Review before submitting</h2>
+          </div>
+          <button type="button" class="ghost-button" data-close-confirm>Close</button>
+        </div>
+        <div id="enquiryConfirmSummary" class="confirm-summary"></div>
+        <button type="button" id="submitEnquiryButton">Submit enquiry</button>
+      </section>
+    </div>
+
+    <div class="confirm-modal" id="termsModal" aria-hidden="true">
+      <div class="confirm-backdrop" data-close-terms></div>
+      <section class="confirm-panel terms-panel" aria-label="Venue hire terms and conditions">
+        <div class="extras-head">
+          <div>
+            <p class="eyebrow">Venue hire</p>
+            <h2>Terms and conditions</h2>
+          </div>
+          <button type="button" class="ghost-button" data-close-terms>Close</button>
+        </div>
+        <div class="terms-content">
+          <p>These are general venue hire conditions for Australian events and should be reviewed by The Hannans Club before public use.</p>
+          <ol>
+            <li>The Hirer is responsible for the conduct of guests, invitees, suppliers, contractors, and any person attending the event.</li>
+            <li>Bookings are not confirmed until accepted by The Hannans Club and any required venue hire fee, deposit, or booking form has been received.</li>
+            <li>Final numbers, event timings, room setup, catering arrangements, and supplier details must be confirmed by the date requested by The Hannans Club.</li>
+            <li>All events must comply with the Liquor Control Act 1988 (WA), responsible service of alcohol obligations, venue licence conditions, and lawful directions from club staff.</li>
+            <li>BYO alcohol is not permitted unless expressly approved in writing by The Hannans Club.</li>
+            <li>The Hirer is responsible for damage, breakage, excessive cleaning, missing items, or costs caused by guests, suppliers, or contractors.</li>
+            <li>External suppliers must comply with venue access, safety, insurance, cleanup, and pack-down requirements.</li>
+            <li>The Hannans Club may require security, additional staffing, event management, or other controls for events based on guest numbers, event type, or risk.</li>
+            <li>Decorations, candles, confetti, smoke machines, amplified sound, structures, and electrical equipment require prior approval.</li>
+            <li>Noise, music, and entertainment must comply with venue requirements, licence conditions, and any local laws or directions.</li>
+            <li>The Hirer must ensure minors are supervised and that no guest engages in unlawful, unsafe, offensive, or disorderly behaviour.</li>
+            <li>The Hannans Club may refuse service, remove guests, end an event, or cancel a booking where safety, licensing, property, or conduct concerns arise.</li>
+            <li>Cancellation, postponement, refund, and transfer requests are subject to The Hannans Club approval and any costs already incurred.</li>
+            <li>The Hirer is responsible for obtaining any permits, approvals, licences, or insurances required for their event or suppliers.</li>
+            <li>The Hannans Club is not liable for personal items, supplier property, or equipment left at the venue.</li>
+          </ol>
         </div>
       </section>
     </div>

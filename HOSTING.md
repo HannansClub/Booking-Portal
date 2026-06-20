@@ -23,6 +23,12 @@ Set these in the hosting provider dashboard:
 - `HANNANS_DATA_DIR`: a persistent data folder supplied by the host, for example `/var/data/hannans`.
 - `HANNANS_MEMBER_DB_PATH`: full path to the hosted `hannans_club.sqlite3` member database.
 - `HANNANS_ADMIN_TIMEOUT_SECONDS`: admin timeout in seconds. Use `300` for 5 minutes.
+- `HANNANS_MANAGER_EMAIL`: manager email address for enquiry notifications.
+- `HANNANS_SMTP_HOST`: outgoing email server.
+- `HANNANS_SMTP_PORT`: usually `587`.
+- `HANNANS_SMTP_USERNAME`: outgoing email username.
+- `HANNANS_SMTP_PASSWORD`: outgoing email password or app password.
+- `HANNANS_SMTP_FROM`: email address shown as the sender.
 
 ## Persistent Data
 
@@ -31,6 +37,8 @@ The hosted app writes admin changes to:
 `booking_admin_state.json`
 
 inside `HANNANS_DATA_DIR`. This stores added bookings, edited bookings, deleted bookings, cancelled bookings, event notes, checklists, reports data, and staff assignments.
+
+If SMTP is not configured, enquiries will still be saved in admin and the intended emails will be logged in the admin data as not configured.
 
 The member database should be copied to the host as:
 

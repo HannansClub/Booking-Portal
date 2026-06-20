@@ -8,7 +8,9 @@ import os
 import re
 import secrets
 import sqlite3
+import smtplib
 import time
+from email.message import EmailMessage
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any
@@ -28,6 +30,12 @@ MEMBER_DB_PATH = Path(os.environ.get(
 APP_SECRET = os.environ.get("HANNANS_APP_SECRET", "local-test-secret-please-change-before-use-12345")
 ADMIN_PASSWORD = os.environ.get("HANNANS_ADMIN_PASSWORD", "hannans")
 ADMIN_TIMEOUT_SECONDS = int(os.environ.get("HANNANS_ADMIN_TIMEOUT_SECONDS", "300"))
+MANAGER_EMAIL = os.environ.get("HANNANS_MANAGER_EMAIL", "manager@hannansclub.com.au")
+SMTP_HOST = os.environ.get("HANNANS_SMTP_HOST", "")
+SMTP_PORT = int(os.environ.get("HANNANS_SMTP_PORT", "587"))
+SMTP_USERNAME = os.environ.get("HANNANS_SMTP_USERNAME", "")
+SMTP_PASSWORD = os.environ.get("HANNANS_SMTP_PASSWORD", "")
+SMTP_FROM = os.environ.get("HANNANS_SMTP_FROM", MANAGER_EMAIL)
 ADMIN_SESSIONS: dict[str, float] = {}
 
 MEMBER_NUMBER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 -]{0,31}$")
@@ -49,6 +57,8 @@ def default_admin_state() -> dict[str, Any]:
         "staffMembers": [],
         "eventChecklists": {},
         "deletedBookingIds": [],
+        "attachments": {},
+        "emailLog": [],
     }
 
 
@@ -83,6 +93,71 @@ def write_admin_state(data: dict[str, Any]) -> None:
     state = default_admin_state()
     state.update({key: data.get(key, state[key]) for key in state})
     ADMIN_STATE_PATH.write_text(json.dumps(state, indent=2), encoding="utf-8")
+
+
+def send_email(to_email: str, subject: str, body: str) -> str:
+    if not SMTP_HOST or not SMTP_USERNAME or not SMTP_PASSWORD:
+        return "not_configured"
+    message = EmailMessage()
+    message["From"] = SMTP_FROM
+    message["To"] = to_email
+    message["Subject"] = subject
+    message.set_content(body)
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+        server.starttls()
+        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.send_message(message)
+    return "sent"
+
+
+def save_public_enquiry(payload: dict[str, Any]) -> dict[str, Any]:
+    state = read_admin_state()
+    booking = payload.get("booking") if isinstance(payload.get("booking"), dict) else {}
+    if not booking.get("eventName") or not booking.get("date"):
+        raise ValueError("Missing event details.")
+    booking_id = f"WEB-{int(time.time())}-{secrets.token_hex(3)}"
+    booking.update({
+        "id": booking_id,
+        "sourceCell": "Website enquiry",
+        "status": "new enquiry",
+        "depositStatus": "Not requested",
+        "balanceStatus": "Not requested",
+        "paymentDue": "",
+        "submittedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+    state["addedBookings"].append(booking)
+    attachments = payload.get("attachments") if isinstance(payload.get("attachments"), list) else []
+    if attachments:
+        state["attachments"][booking_id] = attachments[:5]
+
+    manager_body = payload.get("managerEmailBody") or json.dumps(booking, indent=2)
+    client_body = payload.get("clientEmailBody") or "Thank you for your enquiry. The Hannans Club will be in touch."
+    email_log = []
+    for to_email, subject, body, kind in [
+        (MANAGER_EMAIL, "New Hannans Club venue enquiry", manager_body, "manager"),
+        (booking.get("contactEmail", ""), "Your Hannans Club venue enquiry", client_body, "client"),
+    ]:
+        if not to_email:
+            continue
+        status = "not_sent"
+        error = ""
+        try:
+            status = send_email(to_email, subject, body)
+        except Exception as exc:  # noqa: BLE001
+            status = "failed"
+            error = str(exc)
+        email_log.append({
+            "bookingId": booking_id,
+            "to": to_email,
+            "kind": kind,
+            "subject": subject,
+            "status": status,
+            "error": error,
+            "createdAt": booking["submittedAt"],
+        })
+    state["emailLog"].extend(email_log)
+    write_admin_state(state)
+    return {"bookingId": booking_id, "emailLog": email_log}
 
 
 def normalize_member_number(value: str) -> str:
@@ -202,6 +277,13 @@ def app(environ, start_response):
     if method == "POST" and path == "/api/member-lookup":
         status, payload = lookup_members(str(read_json_body(environ).get("value", "")))
         return json_response(start_response, status, payload)
+
+    if method == "POST" and path == "/api/enquiries":
+        try:
+            result = save_public_enquiry(read_json_body(environ))
+        except ValueError as exc:
+            return json_response(start_response, HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+        return json_response(start_response, HTTPStatus.OK, {"ok": True, **result})
 
     if method == "POST" and path == "/api/admin/login":
         password = str(read_json_body(environ).get("password", ""))
